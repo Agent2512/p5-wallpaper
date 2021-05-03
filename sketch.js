@@ -1,114 +1,139 @@
-var sketch = function (p) {
-    var agents = [];
+var agents = [];
+var trails = [];
+var moveSpeed = 1
+var r_angle = 15
 
+
+var sketch = function (p) {
     p.setup = () => {
-        p.createCanvas(400, 400);
+        p.createCanvas(800, 800, p.P2D);
         p.pixelDensity(1);
         p.background(0)
 
-        for (var i = 0; i < 1; i++) {
-            agents.push(new agnet(p))
+        for (var i = 0; i < 75; i++) {
+            agents.push(new agnet2(p.random(p.width), p.random(p.height), p.random(360)))
         }
 
         setTimeout(() => {
+            // console.log(interval);
             // p.noLoop()
+            // console.log(p);
         }, 1000);
+
     };
 
     p.draw = () => {
+        p.background(0)
+        
 
         p.ellipseMode(p.CENTER);
         p.angleMode(p.DEGREES);
         p.colorMode(p.RGB)
 
-        for (let a of agents) {
-            a.update()
-            a.show()
-            a.fade()
-        }
+        test()
+        // fade()
 
+        // p.filter(p.BLUR, 1.3)
     }
-};
-new p5(sketch, "container");
-
-class agnet {
-
-    constructor(p5) {
-        this.p5 = p5
-        this.width = this.p5.width
-        this.height = this.p5.height
-
-        this.r_angle = 15
-        this.moveSpeed = 1
-        this.angle = this.p5.random(0, 360)
-        this.pos = this.p5.createVector(this.width / 2, this.height / 2)
-
-
-        this.trails = []
-
-    }
-
-    update = () => {
-        var cos = this.p5.cos(this.angle)
-        var sin = this.p5.sin(this.angle)
-        var dir = this.p5.createVector(cos, sin)
-        var newPos = this.pos.add(dir).mult(this.moveSpeed)
-
-        // console.log(dir, newPos);
-
-        if (newPos.x < 0 || newPos.x >= this.width || newPos.y < 0 || newPos.y >= this.height) {
-            newPos.x = this.p5.min(this.width - 0.01, this.p5.max(0, newPos.x))
-            newPos.y = this.p5.min(this.height - 0.01, this.p5.max(0, newPos.y))
-
-
-            this.angle = this.angle + this.p5.random(100, 260)
-        }
-
-        this.angle = this.angle + this.p5.random(-this.r_angle, this.r_angle)
-
-        this.angle >= 360 && (this.angle = this.angle % 360)
-        this.pos = newPos
-
-        this.trails.push({
-            x: this.p5.floor(newPos.x),
-            y: this.p5.floor(newPos.y)
-        })
-
-        // console.log(this.angle);
-        // console.log(newPos);
-    }
-
-    show = () => {
-        this.p5.stroke(255)
-        this.p5.strokeWeight(1)
-        this.p5.noFill()
-
-
-        // this.p5.point(this.pos.x, this.pos.y);
-        let c = this.p5.color(255);
-        this.p5.set(this.pos.x, this.pos.y, c)
-        this.p5.updatePixels();
-    }
-
 
     fade = () => {
 
-        for (let i = 0; i < this.trails.length; i++) {
-            const pixel_v = this.trails[i];
-            const pixel = this.p5.get(pixel_v.x, pixel_v.y)
+        for (let i = 0; i < trails.length; i++) {
+            const pixel_v = trails[i];
+            const pixel = p.get(pixel_v.x, pixel_v.y)
 
-            let c = this.p5.color(pixel[0] - 1);
-                this.p5.set(pixel_v.x, pixel_v.y, c)
+            let c = p.color(pixel[0] - 9);
+            p.set(pixel_v.x, pixel_v.y, c)
 
-            if (pixel[0] <= 150) {
-                let c = this.p5.color(0);
-                this.p5.set(pixel_v.x, pixel_v.y, c)
+            if (pixel[0] <= 50) {
+                let c = p.color(0);
+                p.set(pixel_v.x, pixel_v.y, c)
                 // console.log(pixel[0]);
-                this.trails.splice(i, 1)
-            } 
+                trails.splice(i, 1)
+            }
 
-            this.p5.updatePixels();
+            p.updatePixels();
         }
     }
-}
+    update = () => {
+        for (let a of agents) {
+            var cos = p.cos(a.angle)
+            var sin = p.sin(a.angle)
+            var dir = p.createVector(cos, sin)
+            var pos = p.createVector(a.pos.x, a.pos.y)
+            var newPos = pos.add(dir).mult(moveSpeed)
 
+            if (newPos.x < 0 || newPos.x >= p.width || newPos.y < 0 || newPos.y >= p.height) {
+                newPos.x = p.min(p.width - 0.01, p.max(0, newPos.x))
+                newPos.y = p.min(p.height - 0.01, p.max(0, newPos.y))
+
+                a.angle = a.angle + p.random(100, 260)
+            }
+
+            a.angle = a.angle + p.random(-r_angle, r_angle)
+
+            a.angle >= 360 && (a.angle = a.angle % 360)
+
+            a.pos = newPos
+
+            if (trails.find(i => i.id == `${p.floor(newPos.x)}${p.floor(newPos.y)}`) == undefined) {
+                trails.push({ x: p.floor(newPos.x), y: p.floor(newPos.y), id: `${p.floor(newPos.x)}${p.floor(newPos.y)}` })
+            }
+
+            // a.pos = { x: p.floor(newPos.x), y: p.floor(newPos.y) }
+        }
+    }
+    show = () => {
+        for (let a of agents) {
+            let c = p.color(255);
+            p.set(a.pos.x, a.pos.y, c)
+            p.updatePixels();
+        }
+    }
+
+
+    test = () => {
+        for (let a of agents) {
+            // pos
+            var cos = p.cos(a.angle) 
+            var sin = p.sin(a.angle) 
+            var dir = p.createVector(cos, sin).mult(moveSpeed)
+            var pos = p.createVector(a.pos.x, a.pos.y)
+            var newPos = pos.add(dir)
+
+            if (newPos.x < 0 || newPos.x >= p.width || newPos.y < 0 || newPos.y >= p.height) {
+                newPos.x = p.min(p.width - 0.01, p.max(0, newPos.x))
+                newPos.y = p.min(p.height - 0.01, p.max(0, newPos.y))
+
+                a.angle = a.angle + p.random(100, 260)
+            }
+
+            a.angle = a.angle + p.random(-r_angle, r_angle)
+
+            a.angle >= 360 && (a.angle = a.angle % 360)
+
+            a.pos = newPos
+
+            var id = `${newPos.x}${newPos.y}`
+            if (trails.find(i => i.id == id) == undefined) {
+                trails.push({x: newPos.x, y:newPos.y, id})
+            }
+
+            // show
+            let c = p.color(255);
+            p.set(a.pos.x, a.pos.y, c)
+            p.updatePixels();
+        }
+    }
+};
+
+
+
+new p5(sketch, "container");
+
+class agnet2 {
+    constructor(x, y, angle) {
+        this.angle = angle
+        this.pos = { x, y }
+    }
+}
